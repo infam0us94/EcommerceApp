@@ -1,11 +1,15 @@
 package com.example.ecommerceapp
 
+import android.app.ActivityOptions
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.util.Log.d
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityOptionsCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -20,6 +24,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.fragment_main.*
 import kotlinx.android.synthetic.main.fragment_main.view.*
+import kotlinx.android.synthetic.main.product_row.view.*
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
 import java.net.URL
@@ -64,38 +69,21 @@ class MainFragment : Fragment() {
                 d("Ivan", "Success ;)")
                 recycler_view.apply {
                     layoutManager = GridLayoutManager(activity, 2)
-                    adapter = ProductsAdapter(it)
+                    adapter = ProductsAdapter(it) { extraTittle, extraImageUrl, photoView ->
+                        val intent = Intent(activity, ProductDetails::class.java)
+                        intent.putExtra("title", extraTittle)
+                        intent.putExtra("photo_url", extraImageUrl)
+                        val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
+                            activity as AppCompatActivity,
+                            photoView,
+                            "photoToAnimate"
+                        )
+                        startActivity(intent, options.toBundle())
+                    }
                 }
                 progressBar.visibility = View.GONE
             }, {
                 d("Ivan", " error :( ${it.message}")
             })
-
-//        search_button.setOnClickListener {
-//            doAsync {
-//                val db = activity?.let {
-//                    Room.databaseBuilder(
-//                        it.applicationContext,
-//                        AppDatabase::class.java, "database-name"
-//                    ).build()
-//                }
-//                val productFromDatabase = db?.productDao()?.searchFor("%${search_term.text}%")
-//                val products = productFromDatabase?.map {
-//                    Product(
-//                        it.title,
-//                        "https://finepointmobile.com/data/jeans2.jpg",
-//                        it.price,
-//                        true
-//                    )
-//                }
-//                uiThread {
-//                    recycler_view.apply {
-//                        layoutManager = GridLayoutManager(activity, 2)
-//                        adapter = ProductsAdapter(products!!)
-//                    }
-//                    progressBar.visibility = View.GONE
-//                }
-//            }
-//        }
     }
 }

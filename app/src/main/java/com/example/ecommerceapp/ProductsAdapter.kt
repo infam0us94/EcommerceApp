@@ -11,19 +11,13 @@ import com.example.ecommerceapp.model.Product
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.product_row.view.*
 
-class ProductsAdapter(private val products: List<Product>) :
+class ProductsAdapter(private val products: List<Product>,
+private val onClickProduct: (title: String, photoUrl: String, photoView: View) -> Unit) :
     RecyclerView.Adapter<ProductsAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.product_row, parent, false)
-        val holder = ViewHolder(view)
-        view.setOnClickListener {
-            val intent = Intent(parent.context, ProductDetails::class.java)
-            intent.putExtra("title", products[holder.adapterPosition].title)
-            intent.putExtra("photo_url", products[holder.adapterPosition].photoUrl)
-            parent.context.startActivity(intent)
-        }
-        return holder
+        return ViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -34,9 +28,14 @@ class ProductsAdapter(private val products: List<Product>) :
 
         if (product.isOnSale) {
             holder.saleImageView.visibility = View.VISIBLE
-        }else {
+        } else {
             holder.saleImageView.visibility = View.GONE
         }
+
+        holder.image.setOnClickListener {
+            onClickProduct.invoke(product.title, product.photoUrl, holder.image)
+        }
+
     }
 
     override fun getItemCount() = products.size
