@@ -6,8 +6,13 @@ import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.room.Room
+import com.example.ecommerceapp.database.AppDatabase
+import com.example.ecommerceapp.database.ProductFromDatabase
 import com.google.android.material.navigation.NavigationView
 import kotlinx.android.synthetic.main.main.*
+import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.uiThread
 
 class MainActivity : AppCompatActivity() {
 
@@ -18,6 +23,20 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
+
+        doAsync {
+            val db = Room.databaseBuilder(
+                applicationContext,
+                AppDatabase::class.java, "database-name"
+            ).build()
+
+            db.productDao().insertAll(ProductFromDatabase(null, "Socks - one dozen", 1.99))
+            val products = db.productDao().getAll()
+
+            uiThread {
+                d("Ivan", "product size ${products.size}")
+            }
+        }
 
         supportFragmentManager.beginTransaction()
             .replace(R.id.frame_layout, MainFragment())
@@ -38,7 +57,14 @@ class MainActivity : AppCompatActivity() {
                         .replace(R.id.frame_layout, JeansFragment())
                         .commit()
                 }
-                R.id.action_shorts -> d("Ivan", "shorts was pressed!")
+                R.id.action_shorts -> {
+                    d("Ivan", "shorts was pressed!")
+                }
+                R.id.action_admin -> {
+                    supportFragmentManager.beginTransaction()
+                        .replace(R.id.frame_layout, AdminFragment())
+                        .commit()
+                }
             }
             it.isChecked = true
             drawerLayout.closeDrawers()

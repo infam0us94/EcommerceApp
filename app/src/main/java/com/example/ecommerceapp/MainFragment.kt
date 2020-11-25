@@ -1,13 +1,24 @@
 package com.example.ecommerceapp
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.room.Room
+import com.example.ecommerceapp.database.AppDatabase
+import com.example.ecommerceapp.database.ProductFromDatabase
 import com.example.ecommerceapp.model.Product
+import com.google.gson.Gson
 import kotlinx.android.synthetic.main.fragment_main.*
+import kotlinx.android.synthetic.main.fragment_main.view.*
+import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.uiThread
+import java.net.URL
 
 class MainFragment : Fragment() {
     override fun onCreateView(
@@ -15,26 +26,58 @@ class MainFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
         val root = inflater.inflate(R.layout.fragment_main, container, false)
 
-        val products = arrayListOf<Product>()
+        val categories = listOf(
+            "Jeans",
+            "Socks",
+            "Suits",
+            "Skirts",
+            "Dresses",
+            "Hoody",
+            "Jeans",
+            "Socks",
+            "Suits",
+            "Skirts",
+            "Dresses",
+            "Hoody"
+        )
 
-        for (i in 0..100) {
-            products.add(
-                Product(
-                    "Organic Apple #$i",
-                    "http://via.placeholder.com/350/dddddd/000000",
-                    1.99
-                )
-            )
+        root.categories_recycler_view.apply {
+            layoutManager = LinearLayoutManager(activity, RecyclerView.HORIZONTAL, false)
+            adapter = CategoriesAdapter(categories)
         }
-
-        recycler_view.apply {
-            layoutManager = GridLayoutManager(activity, 2)
-            adapter = ProductsAdapter(products)
-        }
-
         return root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        search_button.setOnClickListener {
+            doAsync {
+                val db = activity?.let {
+                    Room.databaseBuilder(
+                        it.applicationContext,
+                        AppDatabase::class.java, "database-name"
+                    ).build()
+                }
+                val productFromDatabase = db?.productDao()?.searchFor("%${search_term.text}%")
+                val products = productFromDatabase?.map {
+                    Product(
+                        it.title,
+                        "https://finepointmobile.com/data/jeans2.jpg",
+                        it.price,
+                        true
+                    )
+                }
+                uiThread {
+                    recycler_view.apply {
+                        layoutManager = GridLayoutManager(activity, 2)
+                        adapter = ProductsAdapter(products!!)
+                    }
+                    progressBar.visibility = View.GONE
+                }
+            }
+        }
     }
 }
