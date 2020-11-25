@@ -2,6 +2,7 @@ package com.example.ecommerceapp
 
 import android.os.Bundle
 import android.util.Log
+import android.util.Log.d
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,7 +14,10 @@ import androidx.room.Room
 import com.example.ecommerceapp.database.AppDatabase
 import com.example.ecommerceapp.database.ProductFromDatabase
 import com.example.ecommerceapp.model.Product
+import com.example.ecommerceapp.repos.ProductRepository
 import com.google.gson.Gson
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.fragment_main.*
 import kotlinx.android.synthetic.main.fragment_main.view.*
 import org.jetbrains.anko.doAsync
@@ -53,31 +57,45 @@ class MainFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        search_button.setOnClickListener {
-            doAsync {
-                val db = activity?.let {
-                    Room.databaseBuilder(
-                        it.applicationContext,
-                        AppDatabase::class.java, "database-name"
-                    ).build()
+        val productsRepository = ProductRepository().getAllProducts()
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                d("Ivan", "Success ;)")
+                recycler_view.apply {
+                    layoutManager = GridLayoutManager(activity, 2)
+                    adapter = ProductsAdapter(it)
                 }
-                val productFromDatabase = db?.productDao()?.searchFor("%${search_term.text}%")
-                val products = productFromDatabase?.map {
-                    Product(
-                        it.title,
-                        "https://finepointmobile.com/data/jeans2.jpg",
-                        it.price,
-                        true
-                    )
-                }
-                uiThread {
-                    recycler_view.apply {
-                        layoutManager = GridLayoutManager(activity, 2)
-                        adapter = ProductsAdapter(products!!)
-                    }
-                    progressBar.visibility = View.GONE
-                }
-            }
-        }
+                progressBar.visibility = View.GONE
+            }, {
+                d("Ivan", " error :( ${it.message}")
+            })
+
+//        search_button.setOnClickListener {
+//            doAsync {
+//                val db = activity?.let {
+//                    Room.databaseBuilder(
+//                        it.applicationContext,
+//                        AppDatabase::class.java, "database-name"
+//                    ).build()
+//                }
+//                val productFromDatabase = db?.productDao()?.searchFor("%${search_term.text}%")
+//                val products = productFromDatabase?.map {
+//                    Product(
+//                        it.title,
+//                        "https://finepointmobile.com/data/jeans2.jpg",
+//                        it.price,
+//                        true
+//                    )
+//                }
+//                uiThread {
+//                    recycler_view.apply {
+//                        layoutManager = GridLayoutManager(activity, 2)
+//                        adapter = ProductsAdapter(products!!)
+//                    }
+//                    progressBar.visibility = View.GONE
+//                }
+//            }
+//        }
     }
 }

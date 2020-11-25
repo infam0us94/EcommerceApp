@@ -1,12 +1,15 @@
 package com.example.ecommerceapp
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log.d
+import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.room.Room
+import com.example.ecommerceapp.cart.CartActivity
 import com.example.ecommerceapp.database.AppDatabase
 import com.example.ecommerceapp.database.ProductFromDatabase
 import com.google.android.material.navigation.NavigationView
@@ -78,7 +81,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId  == R.id.action_cart) {
+            startActivity(Intent(this, CartActivity::class.java))
+            return true
+        }
         drawerLayout.openDrawer(GravityCompat.START)
+        return true
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu_toolbar, menu)
         return true
     }
 }
