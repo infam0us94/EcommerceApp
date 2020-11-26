@@ -11,6 +11,7 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.room.Room
 import com.example.ecommerceapp.cart.CartActivity
 import com.example.ecommerceapp.database.AppDatabase
+import com.example.ecommerceapp.database.CartModel
 import com.example.ecommerceapp.database.ProductFromDatabase
 import com.google.android.material.navigation.NavigationView
 import kotlinx.android.synthetic.main.main.*
@@ -36,8 +37,15 @@ class MainActivity : AppCompatActivity() {
             db.productDao().insertAll(ProductFromDatabase(null, "Socks - one dozen", 1.99))
             val products = db.productDao().getAll()
 
+            val cart = db.cartDao()
+            cart.insertAll(CartModel(null, "Test product", 12.99,3))
+            val allCartItems = cart.getAll()
+
             uiThread {
                 d("Ivan", "product size ${products.size}")
+                allCartItems.forEach {
+                    d("Ivan", "item in cart ${it.price}")
+                }
             }
         }
 
