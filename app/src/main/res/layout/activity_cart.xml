@@ -60,7 +60,6 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/payment_address" />
 
-
     <Button
         android:layout_width="0dp"
         android:layout_height="wrap_content"

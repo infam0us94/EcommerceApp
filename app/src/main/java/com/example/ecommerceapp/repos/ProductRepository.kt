@@ -1,33 +1,33 @@
 package com.example.ecommerceapp.repos
 
 import com.example.ecommerceapp.model.Product
+import com.example.ecommerceapp.productdetails.EcommerceApi
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import io.reactivex.Single
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import java.net.URL
 
 class ProductRepository {
-    fun getAllProducts(): Single<List<Product>> {
-        return Single.create<List<Product>> {
-            it.onSuccess(fetchProducts())
-        }
+
+    private fun retrofit(): EcommerceApi {
+        return Retrofit.Builder()
+            .baseUrl("https://finepointmobile.com/")
+            .addConverterFactory(GsonConverterFactory.create(GsonBuilder().create()))
+            .build()
+            .create(EcommerceApi::class.java)
     }
 
-    fun searchForProducts(term: String): Single<List<Product>> {
-        return Single.create<List<Product>> {
-            val filteredProducts = fetchProducts().filter { it.title.contains(term, true) }
-            it.onSuccess(filteredProducts)
-        }
+    suspend fun fetchAllProductsRetrofit(): List<Product> {
+        return retrofit().fetchAllProducts()
     }
 
-    fun getProductByName(name: String): Single<Product> {
-       return Single.create<Product> {
-           val product = fetchProducts().first {it.title == name}
-           it.onSuccess(product)
-       }
+    suspend fun fetchProduct(productTitle: String): Product {
+        return fetchAllProductsRetrofit().first{it.title == productTitle}
     }
 
-    fun fetchProducts(): List<Product> {
-        val json = URL("https://finepointmobile.com/data/products.json").readText()
-        return Gson().fromJson(json, Array<Product>::class.java).toList()
+    suspend fun searchForProducts(term: String): List<Product> {
+        return fetchAllProductsRetrofit().filter { it.title.contains(term, true) }
     }
 }
